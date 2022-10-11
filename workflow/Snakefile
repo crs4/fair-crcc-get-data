@@ -25,5 +25,5 @@ include: "rules/download.smk"
 rule all:
     input:
         index="index.tsv",
-        data=lambda _: [get_dest_remote(fname) for fname in get_dest_item_names()], # need lambda to call the input fn
-        data_validation=lambda _: [f"encrypted/{fname}.validated" for fname in get_dest_item_names()]
+        data=lambda _: [get_dest_remote(fname) for fname in get_data_file_names()], # need lambda to call the input fn
+        data_validation=lambda _: [f"encrypted/{fname}.c4gh.validated" for fname in get_data_file_names()]

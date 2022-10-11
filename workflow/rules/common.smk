@@ -94,11 +94,11 @@ def get_all_demangled_names() -> Iterable[str]:
 
 def _cache_index() -> None:
     class CacheItem:
-        def __init__(self, plain_name, crypt_chksum):
-            self.plain_name = plain_name
+        def __init__(self, mangled_name, crypt_chksum):
+            self.mangled_name = mangled_name
             self.crypt_chksum = crypt_chksum
 
-    global _gRenameIndexCache  # defined in index.smk
+    global _gRenameIndexCache
     with _gRenameIndexLock:
         if _gRenameIndexCache is None:
             with checkpoints.decrypt_index.get().output.index.open() as f:
@@ -106,20 +106,31 @@ def _cache_index() -> None:
                 tmp = dict()
                 for line in f:
                     fields = line.rstrip("\n").split("\t")
-                    tmp[fields[0]] = CacheItem(fields[1], fields[2])
+                    tmp[fields[1]] = CacheItem(fields[0], fields[2])
             _gRenameIndexCache = tmp
 
 
-def get_encrypted_item_checksum(encrypted_name: str) -> str:
+def get_encrypted_item_checksum(name: str) -> str:
     """
     Can only be used in `input:` sections as it accesses checkpoints.
     """
     _cache_index()
     global _gRenameIndexCache
-    return _gRenameIndexCache[encrypted_name].crypt_chksum
+    with _gRenameIndexLock:
+        return _gRenameIndexCache[name].crypt_chksum
 
 
-def get_dest_item_names() -> Iterable[str]:
+def get_mangled_file_name(name: str) -> str:
+    """
+    Can only be used in `input:` sections as it accesses checkpoints.
+    """
+    _cache_index()
+    global _gRenameIndexCache
+    with _gRenameIndexLock:
+        return _gRenameIndexCache[name].mangled_name
+
+
+def get_data_file_names() -> Iterable[str]:
     # TODO: apply configured name filters
     def dest_name(old_name: str) -> str:
         # Remove the trailing .c4gh extension.  If the extension is not
@@ -134,7 +145,7 @@ def get_dest_item_names() -> Iterable[str]:
 
 ##### Module-level name index cache #####
 
-# The file renaming index is produced in a file (by the rules in index.smk),
+# The file renaming index is produced in a file,
 # but then we need to look it up as a the workflow DAG is computed.  Rather
 # than having to read the entire file for each look-up, we cache it in the
 # module-level variable _gRenameIndexCache defined below.

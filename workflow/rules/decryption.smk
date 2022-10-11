@@ -24,7 +24,7 @@ rule decrypt_file:
     input:
         encrypted = "encrypted/{filename}.c4gh"
     output:
-        decrypted = "decrypted/{filename}"
+        decrypted = temp("decrypted/{filename}")
     log:
         "logs/decrypt-{filename}.log",
     benchmark:
