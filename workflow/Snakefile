@@ -1,4 +1,29 @@
-# Main entrypoint of the workflow. 
-# Please follow the best practices: 
-# https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
-# in particular regarding the standardized folder structure mentioned there. 
+# Main entrypoint of the workflow.
+
+##### set minimum snakemake version #####
+from snakemake.utils import min_version
+
+min_version("6.5.0")
+
+# Run as:
+# snakemake --snakefile ./Snakefile --profile ./profile --configfile request_123_config.yml --use-singularity --cores
+#
+
+
+container: "docker://ilveroluca/crypt4gh:1.5"
+
+
+##### Load rules #####
+include: "rules/common.smk"
+include: "rules/index.smk"
+include: "rules/decryption.smk"
+include: "rules/download.smk"
+
+
+###### Main target rule ##########
+
+rule all:
+    input:
+        index="index.tsv",
+        data=lambda _: [get_dest_remote(fname) for fname in get_dest_item_names()], # need lambda to call the input fn
+        data_validation=lambda _: [f"encrypted/{fname}.validated" for fname in get_dest_item_names()]

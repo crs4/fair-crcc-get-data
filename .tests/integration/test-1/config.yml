@@ -1,0 +1,12 @@
+recipient_key: ./test.sec
+source:
+  type: "S3"
+  root_path: "test-bucket/path/"
+  connection:  # all elements will be passed to the selected snakemake remote provider
+    access_key_id: "crc-user"
+    secret_access_key: "crc-user-s3cr3t"
+    host: http://localhost:9000
+    verify: false # don't verify ssl certificates
+destination:
+  type: "local"
+  root_path: "./output"
