@@ -12,39 +12,17 @@ properties:
     - connection
     properties:
       type:
-        type: string
-        descrition: Any of the [remote providers supported by snakemake](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files).
-        enum:
-        - "AzBlob"
-        - "dropbox"
-        - "EGA"
-        - "FTP"
-        - "gfal"
-        - "gridftp"
-        - "GS"
-        - "HTTP"
-        - "iRODS"
-        - "NCBI"
-        - "S3"
-        - "SFTP"
-        - "webdav"
-        - "XRootD"
+        description: "Any of the [remote providers supported by snakemake](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files)."
+        allOf:
+        - {$ref: "#/$defs/connection_type"}
+
       root_path:
-        type: string
-        description: Prefix path for source. The workflow will look for files under this path.
-        default: "/"
+        allOf:
+          - {$ref: "#/$defs/root_path"}
+          - description: >
+              Prefix path for source. The workflow will look for files under this path.
       connection:
-        type: object
-        description: >
-          Connection parameters for [Snakemake remote
-          provider](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files).
-          Keys required/supported vary depending on the provider type.  See
-          the snakemake documentation for details.
-        example:
-          access_key_id: "MYACCESSKEY"
-          secret_access_key: "MYSECRET"
-          host: http://localhost:9000
-          verify: false
+        {$ref: "#/$defs/connection"}
 
   destination:
     type: object
@@ -53,68 +31,39 @@ properties:
     - type
     properties:
       type:
-        type: string
-        descrition: >
+        oneOf: # all supported connection types plus "local"
+        - type: string
+          enum: [ "local" ]
+        - {$ref: "#/$defs/connection_type"}
+        default: "local"
+        description: >
           Any of the [remote providers supported by snakemake](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files)
         plus "local". Default value: "local"
-        default: "local"
-        enum:
-        - "local"
-        - "AzBlob"
-        - "dropbox"
-        - "EGA"
-        - "FTP"
-        - "gfal"
-        - "gridftp"
-        - "GS"
-        - "HTTP"
-        - "iRODS"
-        - "NCBI"
-        - "S3"
-        - "SFTP"
-        - "webdav"
-        - "XRootD"
-      root_path:
-        type: string
-        description: Prefix path for destination. Content will be placed under this path.
-        default: "/"
-      connection:
-        type: object
-        description: >
-          Connection parameters for [Snakemake remote
-          provider](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files).
-          Keys required/supported vary depending on the provider type.  See
-          the snakemake documentation for details.
-        example:
-          access_key_id: "MYACCESSKEY"
-          secret_access_key: "MYSECRET"
-          host: http://localhost:9000
-          verify: false
 
-  filter:
-    type: object
-    properties:
-      exclude:
-        description: >
-          Specify a list of glob patterns of files to exclude.  An item is excluded if:
-            1. it matches an exclude pattern and does not match any include pattern;
-            2. one or more include patterns are specified and none match the item.
-        type: array
-        items:
-          type: string
-          description: Glob pattern
-      include:
-        description: >
-          Specify a list of glob patterns of files to include.  If no include pattern
-          is specified, all files are included.
-        type: array
-        items:
-          type: string
-          description: Glob pattern
-  required:
-    oneOf:
-      - exclude
-      - include
+      root_path:
+        allOf:
+          - {$ref: "#/$defs/root_path"}
+          - description: >
+              Prefix path for destination. Content will be placed under this path.
+
+      connection:
+        {$ref: "#/$defs/connection"}
+
+  filters:
+    type: array
+    items:
+      {$ref: "#/$defs/rule"}
+    description: >
+      Optional list of of filters to be applied to destination file names.
+      These are the original names of the files and the names with which they
+      will be saved in the specified destination.  The filters follow a logic
+      similar to rsync (for those who are familiar with that tool).
+
+      Each filter specifies a glob expression for matching files and an
+      "include" or "exclude" action that they apply, if they match a file.  The
+      filters are tried in the order they are specified: the first one that
+      matches is applied; if no filters match a file name, the file is included.
+
 required:
 - recipient_key
 - source
@@ -139,3 +88,56 @@ examples:
       secret_access_key: "MYSECRET"
       host: http://localhost:9000
       verify: false # don't verify ssl certificates
+  filters:
+  - type: "exclude"
+    pattern: "test-file_2.txt"
+
+$defs:
+  rule:
+    type: object
+    properties:
+      pattern:
+        type: string
+      type:
+        type: string
+        enum:
+        - "include"
+        - "exclude"
+    required:
+    - type
+    - pattern
+
+  connection_type:
+    type: string
+    enum:
+    - "AzBlob"
+    - "dropbox"
+    - "EGA"
+    - "FTP"
+    - "gfal"
+    - "gridftp"
+    - "GS"
+    - "HTTP"
+    - "iRODS"
+    - "NCBI"
+    - "S3"
+    - "SFTP"
+    - "webdav"
+    - "XRootD"
+
+  connection:
+    type: object
+    description: >
+      Connection parameters for [Snakemake remote
+      provider](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files).
+      Keys required/supported vary depending on the provider type.  See
+      the snakemake documentation for details.
+    example:
+      access_key_id: "MYACCESSKEY"
+      secret_access_key: "MYSECRET"
+      host: http://localhost:9000
+      verify: false
+
+  root_path:
+    type: string
+    default: "/"
