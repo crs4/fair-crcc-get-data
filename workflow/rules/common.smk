@@ -1,7 +1,9 @@
+import fnmatch
 import os
+import re
 from pathlib import Path
 from threading import Lock
-from typing import Iterable, Mapping
+from typing import Generator, Iterable, Mapping
 
 from snakemake.remote import AbstractRemoteProvider
 from snakemake.utils import validate
@@ -130,16 +132,47 @@ def get_mangled_file_name(name: str) -> str:
         return _gRenameIndexCache[name].mangled_name
 
 
+class FilterPattern:
+    def __init__(self, type: str, pattern: str):
+        if type not in ('include', 'exclude'):
+            raise ValueError(f"Bad filter type {type}. Expected 'include' or 'exclude'")
+        self._include = 'include' == type
+        self._pattern = re.compile(fnmatch.translate(pattern))
+
+    def keep_file(self, name: str) -> bool:
+        if self._pattern.fullmatch(name) is not None:
+            return self._include
+        return None
+
+    def __repr__(self) -> str:
+        return f"FilterPattern(include={self._include}, pattern={self._pattern})"
+
+
 def get_data_file_names() -> Iterable[str]:
-    # TODO: apply configured name filters
+    if 'filters' in config and config['filters']:
+        filters = [ FilterPattern(f['type'], f['pattern']) for f in config['filters'] ]
+    else:
+        filters = []
+
+    def keep_file(name) -> bool:
+        for f in filters:
+            k = f.keep_file(name)
+            if k is not None:
+                return k
+        return True
+
     def dest_name(old_name: str) -> str:
         # Remove the trailing .c4gh extension.  If the extension is not
         # .c4gh then we leave it. It can help make the workflow easier to adapt
         # to not-encrypted files.
         head, tail = os.path.splitext(old_name)
         return head if tail == '.c4gh' else old_name
- 
-    return [dest_name(p) for p in get_all_demangled_names()]
+
+    destination_names = [q
+                         for q in (dest_name(p) for p in get_all_demangled_names())
+                         if keep_file(q)]
+    return destination_names
+
 
 
 
