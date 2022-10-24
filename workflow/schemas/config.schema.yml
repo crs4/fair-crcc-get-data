@@ -3,16 +3,18 @@ description: Configuration schema for get-data workflow.
 properties:
   recipient_key:
     type: string
-    description: Path to recipient's c4gh private key.  Must be within working directory tree.
+    description: >
+      Path to recipient's c4gh private key.  Must be within working directory tree.
   source:
     type: object
-    description: Source of encrypted data
+    description: Source of encrypted data.
     required:
     - type
     - connection
     properties:
       type:
-        description: "Any of the [remote providers supported by snakemake](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files)."
+        description: >
+          Any of the [remote providers supported by snakemake](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files).
         allOf:
         - {$ref: "#/$defs/connection_type"}
 
@@ -26,25 +28,27 @@ properties:
 
   destination:
     type: object
-    description: Destination for decrypted data
+    description: >
+      Destination for decrypted data.
     required:
     - type
     properties:
       type:
-        oneOf: # all supported connection types plus "local"
+        oneOf: # extend the list of supported connection types with "local"
         - type: string
           enum: [ "local" ]
         - {$ref: "#/$defs/connection_type"}
         default: "local"
         description: >
           Any of the [remote providers supported by snakemake](https://snakemake.readthedocs.io/en/v6.13.1/snakefiles/remote_files.html#remote-files)
-        plus "local". Default value: "local"
+          plus "local". Default value: "local"
 
       root_path:
         allOf:
           - {$ref: "#/$defs/root_path"}
           - description: >
-              Prefix path for destination. Content will be placed under this path.
+              Prefix path for destination.  The workflow will re-create the original
+              source directory structure at the destination storage and under this path.
 
       connection:
         {$ref: "#/$defs/connection"}
