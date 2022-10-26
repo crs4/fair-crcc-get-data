@@ -15,15 +15,19 @@ container: "docker://ilveroluca/crypt4gh:1.5"
 
 ##### Load rules #####
 include: "rules/common.smk"
-include: "rules/index.smk"
 include: "rules/decryption.smk"
 include: "rules/download.smk"
+
+
+###### Workflow start ######
+
+configure_environment()
 
 
 ###### Main target rule ##########
 
 rule all:
     input:
-        index="index.tsv",
+        index=get_dest_remote("index.tsv"),
         data=lambda _: [get_dest_remote(fname) for fname in get_data_file_names()], # need lambda to call the input fn
         data_validation=lambda _: [f"encrypted/{fname}.c4gh.validated" for fname in get_data_file_names()]
