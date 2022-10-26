@@ -1,0 +1,31 @@
+#
+# Configuration file to use the [fair-crcc-send-data workflow](https://github.com/crs4/fair-crcc-send-data/)
+# workflow to generate test data for this fair-crcc-get-data workflow.
+# 
+# Running the workflow will take the encrypted files in `gen_test_data` (with the
+# .c4gh extension), reencrypt them with the recipient key, rename them, upload them
+# to the test S3 service along with the encrypted index file.
+#
+# Run the workflow from the .tests/integration directory,
+# where the gen_test_data directory is found.
+#
+# cd .tests/integration directory &&
+#   snakemake --snakefile $HOME/Projects/fair-crcc-send-data/workflow/Snakefile --configfile gen_test_data/send-data_config.yml --use-singularity --cores
+#
+recipient_key: ./test.pub
+repository:
+  path: "./gen_test_data/"
+  private_key: repo.sec
+  public_key: repo.pub
+sources:
+  glob_extension: ".txt.c4gh"
+  items:
+  - ./
+destination:
+  type: "S3"
+  root_path: "test-bucket/fake-repo/"
+  connection:
+    access_key_id: "crc-user"
+    secret_access_key: "crc-user-s3cr3t"
+    host: "http://localhost:9000"
+    verify: false
