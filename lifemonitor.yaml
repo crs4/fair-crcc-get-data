@@ -1,7 +1,6 @@
-# worfklow name (override name defined on the RO-Crate metadata)
-# name: MyWorkflow
+#
 # worfklow visibility
-public: False
+public: True
 
 # Issue Checker Settings
 issues:
@@ -43,10 +42,6 @@ push:
     #   lifemonitor_instance: development   # uncomment to use the 'development' instance of LifeMonitor
     #                                       # (the 'production' instance is used by default)
     - name: "v*.*.*"
-      update_registries: [wfhubdev]
-      enable_notifications: true
-      # lifemonitor_instance: development
-    - name: "*.*.*"
       update_registries: [wfhubdev]
       enable_notifications: true
       # lifemonitor_instance: development
