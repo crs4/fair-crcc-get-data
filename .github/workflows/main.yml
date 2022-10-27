@@ -16,7 +16,7 @@ jobs:
         singularity-version: ["3.10.3"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install singularity
       run: |
@@ -25,7 +25,8 @@ jobs:
         sudo apt update -y && \
         sudo apt install -y /tmp/singularity-ce.deb
 
-    - uses: conda-incubator/setup-miniconda@v2
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2.1.1
       with:
         python-version: ${{ matrix.python-version }}
         mamba-version: "*"
