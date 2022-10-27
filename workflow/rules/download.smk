@@ -4,6 +4,9 @@ rule fetch_file:
     Fetch file from the source.
     The file must be referenced by the dataset index.
     The file will be renamed from its mangled name to its normal name.
+
+    We don't run this rule in a container (unlike the rest of the workflow)
+    so that we can create hard links on the local FS, if the destination is 'local'.
     """
     input:
         lambda w: get_source_remote(get_mangled_file_name(w.filename))
@@ -14,10 +17,16 @@ rule fetch_file:
     benchmark:
         "bench/fetch-{filename}.bench"
     resources:
-        mem_mb = 1024  # guessed and probably overestimated
+        mem_mb = 128
+    container: None
     shell:
+        # This job is just a target for the data download jobs, so it
+        # doesn't really do anything with the files. To create a real
+        # output that can be the source for the next job down the DAG
+        # we create a symlink to the temporary download file created by
+        # snakemake.
         """
-        cp --link {input:q} {output:q}
+        /bin/cp --link {input:q} {output:q}
         """
 
 
@@ -45,20 +54,4 @@ rule validate_file:
          cut -d '\t' -f 3 | \
          paste - <(echo encrypted/{wildcards.filename:q}) | sha256sum --check) && \
         touch "encrypted/{wildcards.filename:q}.validated"
-        """
-
-rule place_file:
-    input:
-        "decrypted/{filename}"
-    output:
-        get_dest_remote("{filename}")
-    log:
-        "logs/place-{filename}.log"
-    benchmark:
-        "bench/place-{filename}.bench"
-    resources:
-        mem_mb = 1024  # guessed and probably overestimated
-    shell:
-        """
-        cp --link {input:q} {output:q}
         """

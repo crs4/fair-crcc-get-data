@@ -3,7 +3,7 @@ import os
 import re
 from pathlib import Path
 from threading import Lock
-from typing import Generator, Iterable, Mapping
+from typing import Any, Dict, Iterable, Mapping
 
 from snakemake.remote import AbstractRemoteProvider
 from snakemake.utils import validate
@@ -12,9 +12,39 @@ from snakemake.utils import validate
 #### Configuration ####
 validate(config, schema="../schemas/config.schema.yml")  # also sets default values
 
-#### Environment configuration ####
-shell.prefix("set -o pipefail; ")
+#### Environment configuration function - call at workflow start ####
+def configure_environment():
+    shell.prefix("set -o pipefail; ")
 
+    if workflow.use_singularity:
+        # If workflow is configured to access local storage (i.e., 'source' or
+        # 'destination' have 'type' == 'local'), bind mount the relevant root_path
+        # into container.
+        # Ideally we want to mount the source in read-only mode.
+        # To avoid making the working directory read-only should it be inside
+        # or the same path as the working directory, we check for this case
+        # and if true we mount read-write.
+
+        # To find the directory we have to make sure it exists
+        if config['destination']['type'] == 'local':
+            dest_path = Path(config['destination']['root_path'])
+            dest_path.mkdir(parents=True, exist_ok=True)
+
+        def mount_fs(cfg: Dict[str, Any], prefer_rw: bool):
+            if cfg['type'] != 'local':
+                return
+
+            path = Path(cfg['root_path']).resolve(strict=True)
+            work_dir = Path.cwd()
+            if prefer_rw or path == work_dir or path in work_dir.parents:
+                mount_options = 'rw'
+            else:
+                mount_options = 'ro'
+            workflow.singularity_args += ' '.join([
+                f" --bind {path}:{path}:{mount_options}"])
+
+        mount_fs(config['source'], prefer_rw=False)
+        mount_fs(config['destination'], prefer_rw=True)
 
 ##### Helper functions #####
 
@@ -67,9 +97,9 @@ def _get_remote(remote_type: str, path: str) -> AbstractRemoteProvider:
     remote_config = config[remote_type]
     full_path = Path(remote_config["root_path"]) / path
 
-    if remote_type == 'destination' and DestRProvider:
+    if remote_type == 'destination' and DestRProvider is not None:
         return DestRProvider.remote(str(full_path), **remote_config["connection"])
-    elif remote_type == 'source' and SourceRProvider:
+    elif remote_type == 'source' and SourceRProvider is not None:
         return SourceRProvider.remote(str(full_path), **remote_config["connection"])
     # else
     return full_path
@@ -172,8 +202,6 @@ def get_data_file_names() -> Iterable[str]:
                          for q in (dest_name(p) for p in get_all_demangled_names())
                          if keep_file(q)]
     return destination_names
-
-
 
 
 ##### Module-level name index cache #####
