@@ -6,49 +6,47 @@ on:
   pull_request:
     branches: [ main ]
 
-
 jobs:
-  Formatting:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Formatting
-        uses: github/super-linter@v4
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_SNAKEMAKE_SNAKEFMT: true
-
-  Linting:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Lint workflow
-      uses: snakemake/snakemake-github-action@v1.24.0
-      with:
-        directory: .
-        snakefile: workflow/Snakefile
-        args: "--lint"
-
   Testing:
     runs-on: ubuntu-latest
-    needs: 
-      - Linting
-      - Formatting
+    strategy:
+      matrix:
+        snakemake-version: ["7.15.2", "6.15.5"]
+        python-version: ["3.10"]
+        singularity-version: ["3.10.3"]
+
     steps:
     - uses: actions/checkout@v2
 
-    - name: Test workflow
-      uses: snakemake/snakemake-github-action@v1.24.0
-      with:
-        directory: .test
-        snakefile: workflow/Snakefile
-        args: "--use-conda --show-failed-logs --cores 3 --conda-cleanup-pkgs cache --all-temp"
+    - name: Install singularity
+      run: |
+        curl --output /tmp/singularity-ce.deb --location \
+            "https://github.com/sylabs/singularity/releases/download/v${{ matrix.singularity-version }}/singularity-ce_${{ matrix.singularity-version }}-focal_amd64.deb" && \
+        sudo apt update -y && \
+        sudo apt install -y /tmp/singularity-ce.deb
 
-    - name: Test report
-      uses: snakemake/snakemake-github-action@v1.24.0
+    - uses: conda-incubator/setup-miniconda@v2
       with:
-        directory: .test
-        snakefile: workflow/Snakefile
-        args: "--report report.zip"
+        python-version: ${{ matrix.python-version }}
+        mamba-version: "*"
+        channels: bioconda,conda-forge,defaults
+        channel-priority: true
+        miniforge-variant: "Mambaforge"
+        miniforge-version: "4.14.0-0"
+        use-mamba: true
+
+    - name: mamba install dependencies
+      shell: bash -l {0}
+      # LP: as of 2022-10-27 we have to pin the tabulate package to a version < 0.9
+      # to work around a snakemake issue #1892.
+      run: |
+        mamba install \
+          snakemake-minimal==${{ matrix.snakemake-version }} \
+          pytest \
+          python-crypt4gh \
+          boto3
+
+    - name: Run tests
+      shell: bash -l {0}
+      run: |
+        pytest -vs --log-cli-level=DEBUG -o log_cli=true .tests/integration/test_workflow.py
