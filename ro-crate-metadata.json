@@ -1,0 +1,114 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2022-10-27T15:11:46+00:00",
+            "hasPart": [
+                {
+                    "@id": "workflow/Snakefile"
+                },
+                {
+                    "@id": ".tests/integration/"
+                },
+                {
+                    "@id": "workflow/"
+                },
+                {
+                    "@id": "config/"
+                },
+                {
+                    "@id": "workflow/rules/"
+                },
+                {
+                    "@id": "workflow/schemas/"
+                },
+                {
+                    "@id": "README.md"
+                },
+                {
+                    "@id": "LICENSE"
+                }
+            ],
+            "license": "MIT",
+            "mainEntity": {
+                "@id": "workflow/Snakefile"
+            },
+            "name": "tmprm7jbm51"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": [
+                {
+                    "@id": "https://w3id.org/ro/crate/1.1"
+                },
+                {
+                    "@id": "https://w3id.org/workflowhub/workflow-ro-crate/1.0"
+                }
+            ]
+        },
+        {
+            "@id": "workflow/Snakefile",
+            "@type": [
+                "File",
+                "SoftwareSourceCode",
+                "ComputationalWorkflow"
+            ],
+            "name": "tmprm7jbm51",
+            "programmingLanguage": {
+                "@id": "https://w3id.org/workflowhub/workflow-ro-crate#snakemake"
+            },
+            "version": "main"
+        },
+        {
+            "@id": "https://w3id.org/workflowhub/workflow-ro-crate#snakemake",
+            "@type": "ComputerLanguage",
+            "identifier": {
+                "@id": "https://doi.org/10.1093/bioinformatics/bts480"
+            },
+            "name": "Snakemake",
+            "url": {
+                "@id": "https://snakemake.readthedocs.io"
+            },
+            "version": "0.6.5"
+        },
+        {
+            "@id": ".tests/integration/",
+            "@type": "Dataset",
+            "description": "Integration tests for the workflow"
+        },
+        {
+            "@id": "workflow/",
+            "@type": "Dataset",
+            "description": "Workflow folder"
+        },
+        {
+            "@id": "config/",
+            "@type": "Dataset",
+            "description": "Configuration folder"
+        },
+        {
+            "@id": "workflow/rules/",
+            "@type": "Dataset",
+            "description": "Workflow rule modules"
+        },
+        {
+            "@id": "workflow/schemas/",
+            "@type": "Dataset",
+            "description": "Validation files"
+        },
+        {
+            "@id": "README.md",
+            "@type": "File"
+        },
+        {
+            "@id": "LICENSE",
+            "@type": "File"
+        }
+    ]
+}
