@@ -93,7 +93,7 @@ def test_s3_to_local(run_dir: Path, config_template: Dict[str, Any], destination
 def test_just_include_filter(run_dir: Path, config_template: Dict[str, Any], destination_local_path: Path) -> None:
     cfg = config_template
     cfg['filters'] = [
-        {'type': 'include',
+        {'action': 'include',
          'pattern': 'test-file.*'}
     ]
     test_helpers.run_workflow(cfg, run_dir)
@@ -108,7 +108,7 @@ def test_just_include_filter(run_dir: Path, config_template: Dict[str, Any], des
 def test_just_exclude_filter(run_dir: Path, config_template: Dict[str, Any], destination_local_path: Path) -> None:
     cfg = config_template
     cfg['filters'] = [
-        {'type': 'exclude',
+        {'action': 'exclude',
          'pattern': 'test-file.*'}
     ]
     test_helpers.run_workflow(cfg, run_dir)
@@ -124,9 +124,9 @@ def test_just_exclude_filter(run_dir: Path, config_template: Dict[str, Any], des
 def test_in_ex_filters(run_dir: Path, config_template: Dict[str, Any], destination_local_path: Path) -> None:
     cfg = config_template
     cfg['filters'] = [
-        {'type': 'include',
+        {'action': 'include',
          'pattern': 'test-file_2.txt'},
-        {'type': 'exclude',
+        {'action': 'exclude',
          'pattern': 'test-file_*'}
     ]
     test_helpers.run_workflow(cfg, run_dir)
@@ -142,9 +142,9 @@ def test_in_ex_filters(run_dir: Path, config_template: Dict[str, Any], destinati
 def test_ex_in_filters(run_dir: Path, config_template: Dict[str, Any], destination_local_path: Path) -> None:
     cfg = config_template
     cfg['filters'] = [
-        {'type': 'exclude',
+        {'action': 'exclude',
          'pattern': '*'},
-        {'type': 'include',
+        {'action': 'include',
          'pattern': 'test-file_2.txt'},
     ]
     test_helpers.run_workflow(cfg, run_dir)
@@ -160,9 +160,9 @@ def test_ex_in_filters(run_dir: Path, config_template: Dict[str, Any], destinati
 def test_select_one_file_filter(run_dir: Path, config_template: Dict[str, Any], destination_local_path: Path) -> None:
     cfg = config_template
     cfg['filters'] = [
-        {'type': 'include',
+        {'action': 'include',
          'pattern': 'test-file_2.txt'},
-        {'type': 'exclude',
+        {'action': 'exclude',
          'pattern': '*'},
     ]
     test_helpers.run_workflow(cfg, run_dir)
