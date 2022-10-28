@@ -93,7 +93,7 @@ examples:
       host: http://localhost:9000
       verify: false # don't verify ssl certificates
   filters:
-  - type: "exclude"
+  - action: "exclude"
     pattern: "test-file_2.txt"
 
 $defs:
@@ -102,13 +102,13 @@ $defs:
     properties:
       pattern:
         type: string
-      type:
+      action:
         type: string
         enum:
         - "include"
         - "exclude"
     required:
-    - type
+    - action
     - pattern
 
   connection_type:

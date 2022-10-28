@@ -19,6 +19,8 @@ destination:
     verify: false # don't verify ssl certificates
 
 
-filter:
-  include:
-    - ".tiff.c4gh"
+filters:
+  - action: include
+    pattern: "sample_id_*.tiff"
+  - action: exclude
+    pattern: "*"

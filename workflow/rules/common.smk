@@ -163,10 +163,10 @@ def get_mangled_file_name(name: str) -> str:
 
 
 class FilterPattern:
-    def __init__(self, type: str, pattern: str):
-        if type not in ('include', 'exclude'):
-            raise ValueError(f"Bad filter type {type}. Expected 'include' or 'exclude'")
-        self._include = 'include' == type
+    def __init__(self, action: str, pattern: str):
+        if action not in ('include', 'exclude'):
+            raise ValueError(f"Bad filter action {action}. Expected 'include' or 'exclude'")
+        self._include = 'include' == action
         self._pattern = re.compile(fnmatch.translate(pattern))
 
     def keep_file(self, name: str) -> bool:
@@ -180,7 +180,7 @@ class FilterPattern:
 
 def get_data_file_names() -> Iterable[str]:
     if 'filters' in config and config['filters']:
-        filters = [ FilterPattern(f['type'], f['pattern']) for f in config['filters'] ]
+        filters = [ FilterPattern(f['action'], f['pattern']) for f in config['filters'] ]
     else:
         filters = []
 
