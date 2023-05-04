@@ -6,7 +6,8 @@
 A Snakemake workflow for downloading and decrypting Crypt4GH-encrypted sensitive
 data from the [CRC
 Cohort](https://www.bbmri-eric.eu/scientific-collaboration/colorectal-cancer-cohort/)
-[access request](https://www.bbmri-eric.eu/services/access-policies/).
+[access request](https://www.bbmri-eric.eu/services/access-policies/).  This is a companion
+to the [fair-crcc-send-data](https://github.com/crs4/fair-crcc-send-data/) workflow.
 
 ## What's the CRC Cohort?
 
